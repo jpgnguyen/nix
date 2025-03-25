@@ -60,7 +60,9 @@
 
     homeConfiguration = {pkgs, ...}: {
       home.stateVersion = "24.05";
-      home.packages = [];
+      home.packages = [
+        pkgs.starship
+      ];
       home.username = "joshnguyen";
       home.homeDirectory = "/Users/joshnguyen";
 
@@ -68,6 +70,11 @@
         home-manager.enable = true;
         ssh = {
           enable = true;
+          extraConfig = ''
+            Host github.com
+            	AddKeysToAgent yes
+            	IdentityFile ~/.ssh/github
+          '';
         };
         zsh = {
           enable = true;
@@ -76,6 +83,9 @@
           syntaxHighlighting.enable = true;
         };
         git = {
+          enable = true;
+        };
+        starship = {
           enable = true;
         };
       };
