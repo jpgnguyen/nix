@@ -84,6 +84,8 @@
         };
         git = {
           enable = true;
+          userEmail = "joshuapgnguyen98@gmail.com";
+          userName = "jpgnguyen";
         };
         starship = {
           enable = true;
