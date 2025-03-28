@@ -16,6 +16,10 @@
       url = "github:kamadorueda/alejandra/3.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {
@@ -25,12 +29,26 @@
     nix-homebrew,
     home-manager,
     alejandra,
+    sops-nix,
   }: let
     configuration = {pkgs, ...}: {
+      imports = [inputs.sops-nix.darwinModules.sops];
+
       environment.systemPackages = [
         pkgs.neovim
         pkgs.alejandra
+        pkgs.age
+        pkgs.ssh-to-age
+        pkgs.sops
       ];
+
+      environment = {
+        variables = {
+          EDITOR = "neovim";
+          SYSTEMD_EDITOR = "neovim";
+          VISUAL = "neovim";
+        };
+      };
 
       users.users."joshnguyen" = {
         home = "/Users/joshnguyen";
@@ -48,6 +66,20 @@
           "docker"
         ];
         onActivation.cleanup = "zap";
+      };
+
+      services = {
+        openssh.enable = true;
+      };
+
+      sops = {
+        defaultSopsFile = ./secrets.yaml;
+        defaultSopsFormat = "yaml";
+        secrets.example-key = { };
+        age.keyFile = "/Users/joshnguyen/.config/sops/age/keys.txt";
+        secrets."github" = {
+          owner = "joshnguyen";
+        };
       };
 
       nix.settings.experimental-features = "nix-command flakes";
@@ -81,6 +113,9 @@
           autosuggestion.enable = true;
           enableCompletion = true;
           syntaxHighlighting.enable = true;
+          shellAliases = {
+            dr = "darwin-rebuild switch --flake ~/nix#Joshs-Mac-mini";
+          };
         };
         git = {
           enable = true;
