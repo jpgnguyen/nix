@@ -75,7 +75,6 @@
       sops = {
         defaultSopsFile = ./secrets.yaml;
         defaultSopsFormat = "yaml";
-        secrets.example-key = { };
         age.keyFile = "/Users/joshnguyen/.config/sops/age/keys.txt";
         secrets."github" = {
           owner = "joshnguyen";
