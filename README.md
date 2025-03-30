@@ -7,3 +7,4 @@ Nix darwin configuration. General structure:
 Todo:
   - Separate files for home-manager and darwin configurations, and import into flake.
   - Configure starship
+  - Private secrets repo
