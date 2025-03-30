@@ -38,133 +38,13 @@
     architecture = "aarch64-darwin";
     hostname = "Joshs-Mac-mini";
 
-    configuration = {pkgs, ...}: {
-      users.users.${user}.home = homeDir;
-
-      # Install system wide packages.
-      environment.systemPackages = [
-        pkgs.neovim
-        pkgs.alejandra
-        pkgs.age
-        pkgs.ssh-to-age
-      ];
-
-      # Set default editor to neovim.
-      environment = {
-        variables = {
-          EDITOR = "nvim";
-          SYSTEMD_EDITOR = "nvim";
-          VISUAL = "nvim";
-        };
-      };
-
-      # Install homebrew casks, currently using these for GUI apps.
-      homebrew = {
-        enable = true;
-        casks = [
-          "nordvpn"
-          "plex-media-server"
-          "plex"
-          "obsidian"
-          "google-chrome"
-          "visual-studio-code"
-          "docker"
-          "dbeaver-community"
-        ];
-        onActivation.cleanup = "zap";
-      };
-
-      # Enable OpenSSH as off by default on MacOS.
-      services = {
-        openssh.enable = true;
-      };
-
-      # Nix setup.
-      nix.settings.experimental-features = "nix-command flakes";
-      system.configurationRevision = self.rev or self.dirtyRev or null;
-      system.stateVersion = 6;
-      nixpkgs.hostPlatform = architecture;
-    };
-
-    homeConfiguration = {
-      pkgs,
-      config,
-      ...
-    }: {
-      imports = [
-        inputs.sops-nix.homeManagerModules.sops
-      ];
-
-      home.stateVersion = "24.05";
-      home.packages = [
-        pkgs.starship
-        pkgs.sops
-      ];
-
-      home.username = user;
-      home.homeDirectory = homeDir;
-
-      home.sessionVariables = {
-        SOPS_AGE_KEY_FILE = "${homeDir}/.config/sops/age/keys.txt";
-      };
-
-      sops = {
-        age.keyFile = "${homeDir}/.config/sops/age/keys.txt";
-        defaultSopsFile = ./secrets.yaml;
-        secrets."github_username" = {};
-        secrets."github_email" = {};
-      };
-
-      programs = {
-        home-manager.enable = true;
-        ssh = {
-          enable = true;
-          extraConfig = ''
-            Host github.com
-            	AddKeysToAgent yes
-            	IdentityFile ~/.ssh/github
-          '';
-        };
-        zsh = {
-          enable = true;
-          autosuggestion.enable = true;
-          enableCompletion = true;
-          syntaxHighlighting.enable = true;
-          shellAliases = {
-            dr = "darwin-rebuild switch --flake ~/nix#${hostname}";
-          };
-        };
-        git = {
-          enable = true;
-          userName = config.sops.secrets."github_username".path;
-          userEmail = config.sops.secrets."github_email".path;
-        };
-        starship = {
-          enable = true;
-        };
-      };
-    };
+    configuration = import ./darwin.nix {inherit user homeDir inputs hostname architecture;};
   in {
     darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
       modules = [
         configuration
         nix-homebrew.darwinModules.nix-homebrew
-        {
-          nix-homebrew = {
-            enable = true;
-            enableRosetta = true;
-            user = user;
-          };
-        }
         home-manager.darwinModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.users.${user} = homeConfiguration;
-          home-manager.sharedModules = [
-            sops-nix.homeManagerModules.sops
-          ];
-        }
       ];
     };
   };
