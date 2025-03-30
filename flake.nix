@@ -66,6 +66,7 @@
           "google-chrome"
           "visual-studio-code"
           "docker"
+          "dbeaver-community"
         ];
         onActivation.cleanup = "zap";
       };
