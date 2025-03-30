@@ -1,11 +1,11 @@
-Nix darwin configuration.
+Nix darwin configuration. General structure:
 
-Homebrew casks used for GUI apps.
-
-Home-manager for user and dotfiles.
+ - Homebrew casks for GUI apps.
+ - Home-manager for user and dotfiles.
+ - Nix-sops for secret management.
 
 Todo:
   - Separate files for home-manager and darwin configurations, and import into flake.
-  - Secret manager using sops for ssh keys.
   - Install dbeaver
-  - Install and configure starship
+  - Configure starship
+  - Use secrets.yaml to auth to github.
