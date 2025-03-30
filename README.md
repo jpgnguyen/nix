@@ -6,6 +6,4 @@ Nix darwin configuration. General structure:
 
 Todo:
   - Separate files for home-manager and darwin configurations, and import into flake.
-  - Install dbeaver
   - Configure starship
-  - Use secrets.yaml to auth to github.

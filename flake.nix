@@ -33,7 +33,14 @@
     alejandra,
     sops-nix,
   }: let
+    user = "joshnguyen";
+    homeDir = "/Users/${user}";
+    architecture = "aarch64-darwin";
+    hostname = "Joshs-Mac-mini";
+
     configuration = {pkgs, ...}: {
+      users.users.${user}.home = homeDir;
+
       # Install system wide packages.
       environment.systemPackages = [
         pkgs.neovim
@@ -49,10 +56,6 @@
           SYSTEMD_EDITOR = "nvim";
           VISUAL = "nvim";
         };
-      };
-
-      users.users."joshnguyen" = {
-        home = "/Users/joshnguyen";
       };
 
       # Install homebrew casks, currently using these for GUI apps.
@@ -71,7 +74,7 @@
         onActivation.cleanup = "zap";
       };
 
-      # Enable OpenSSH as off by defaul on MacOS.
+      # Enable OpenSSH as off by default on MacOS.
       services = {
         openssh.enable = true;
       };
@@ -80,10 +83,14 @@
       nix.settings.experimental-features = "nix-command flakes";
       system.configurationRevision = self.rev or self.dirtyRev or null;
       system.stateVersion = 6;
-      nixpkgs.hostPlatform = "aarch64-darwin";
+      nixpkgs.hostPlatform = architecture;
     };
 
-    homeConfiguration = {pkgs, ...}: {
+    homeConfiguration = {
+      pkgs,
+      config,
+      ...
+    }: {
       imports = [
         inputs.sops-nix.homeManagerModules.sops
       ];
@@ -93,16 +100,19 @@
         pkgs.starship
         pkgs.sops
       ];
-      home.username = "joshnguyen";
-      home.homeDirectory = "/Users/joshnguyen";
+
+      home.username = user;
+      home.homeDirectory = homeDir;
 
       home.sessionVariables = {
-        SOPS_AGE_KEY_FILE = "/Users/joshnguyen/.config/sops/age/keys.txt";
+        SOPS_AGE_KEY_FILE = "${homeDir}/.config/sops/age/keys.txt";
       };
 
       sops = {
-        age.keyFile = "/Users/joshnguyen/.config/sops/age/keys.txt";
+        age.keyFile = "${homeDir}/.config/sops/age/keys.txt";
         defaultSopsFile = ./secrets.yaml;
+        secrets."github_username" = {};
+        secrets."github_email" = {};
       };
 
       programs = {
@@ -121,13 +131,13 @@
           enableCompletion = true;
           syntaxHighlighting.enable = true;
           shellAliases = {
-            dr = "darwin-rebuild switch --flake ~/nix#Joshs-Mac-mini";
+            dr = "darwin-rebuild switch --flake ~/nix#${hostname}";
           };
         };
         git = {
           enable = true;
-          userEmail = "joshuapgnguyen98@gmail.com";
-          userName = "jpgnguyen";
+          userName = config.sops.secrets."github_username".path;
+          userEmail = config.sops.secrets."github_email".path;
         };
         starship = {
           enable = true;
@@ -135,7 +145,7 @@
       };
     };
   in {
-    darwinConfigurations."Joshs-Mac-mini" = nix-darwin.lib.darwinSystem {
+    darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
       modules = [
         configuration
         nix-homebrew.darwinModules.nix-homebrew
@@ -143,14 +153,14 @@
           nix-homebrew = {
             enable = true;
             enableRosetta = true;
-            user = "joshnguyen";
+            user = user;
           };
         }
         home-manager.darwinModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users."joshnguyen" = homeConfiguration;
+          home-manager.users.${user} = homeConfiguration;
           home-manager.sharedModules = [
             sops-nix.homeManagerModules.sops
           ];
