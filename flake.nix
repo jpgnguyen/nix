@@ -1,5 +1,5 @@
 {
-  description = "Example nix-darwin system flake";
+  description = "Josh's MacOS nix-darwin flake.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -12,12 +12,14 @@
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Alejandra using for formatting .nix files.
     alejandra = {
       url = "github:kamadorueda/alejandra/3.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # sops-nix used for encrypting secrets.
     sops-nix = {
-      url = "github:mic92/sops-nix";
+      url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -32,21 +34,20 @@
     sops-nix,
   }: let
     configuration = {pkgs, ...}: {
-      imports = [inputs.sops-nix.darwinModules.sops];
-
+      # Install system wide packages.
       environment.systemPackages = [
         pkgs.neovim
         pkgs.alejandra
         pkgs.age
         pkgs.ssh-to-age
-        pkgs.sops
       ];
 
+      # Set default editor to neovim.
       environment = {
         variables = {
-          EDITOR = "neovim";
-          SYSTEMD_EDITOR = "neovim";
-          VISUAL = "neovim";
+          EDITOR = "nvim";
+          SYSTEMD_EDITOR = "nvim";
+          VISUAL = "nvim";
         };
       };
 
@@ -54,6 +55,7 @@
         home = "/Users/joshnguyen";
       };
 
+      # Install homebrew casks, currently using these for GUI apps.
       homebrew = {
         enable = true;
         casks = [
@@ -68,34 +70,39 @@
         onActivation.cleanup = "zap";
       };
 
+      # Enable OpenSSH as off by defaul on MacOS.
       services = {
         openssh.enable = true;
       };
 
-      sops = {
-        defaultSopsFile = ./secrets.yaml;
-        defaultSopsFormat = "yaml";
-        age.keyFile = "/Users/joshnguyen/.config/sops/age/keys.txt";
-        secrets."github" = {
-          owner = "joshnguyen";
-        };
-      };
-
+      # Nix setup.
       nix.settings.experimental-features = "nix-command flakes";
-
       system.configurationRevision = self.rev or self.dirtyRev or null;
       system.stateVersion = 6;
-
       nixpkgs.hostPlatform = "aarch64-darwin";
     };
 
     homeConfiguration = {pkgs, ...}: {
+      imports = [
+        inputs.sops-nix.homeManagerModules.sops
+      ];
+
       home.stateVersion = "24.05";
       home.packages = [
         pkgs.starship
+        pkgs.sops
       ];
       home.username = "joshnguyen";
       home.homeDirectory = "/Users/joshnguyen";
+
+      home.sessionVariables = {
+        SOPS_AGE_KEY_FILE = "/Users/joshnguyen/.config/sops/age/keys.txt";
+      };
+
+      sops = {
+        age.keyFile = "/Users/joshnguyen/.config/sops/age/keys.txt";
+        defaultSopsFile = ./secrets.yaml;
+      };
 
       programs = {
         home-manager.enable = true;
@@ -143,6 +150,9 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users."joshnguyen" = homeConfiguration;
+          home-manager.sharedModules = [
+            sops-nix.homeManagerModules.sops
+          ];
         }
       ];
     };
