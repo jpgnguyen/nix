@@ -14,6 +14,7 @@
     pkgs.alejandra
     pkgs.age
     pkgs.ssh-to-age
+    pkgs.python313
   ];
 
   # Set default editor to neovim.
