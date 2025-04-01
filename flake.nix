@@ -41,6 +41,7 @@
     configuration = import ./darwin.nix {inherit user homeDir inputs hostname architecture;};
   in {
     darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
+      system = architecture;
       modules = [
         configuration
         nix-homebrew.darwinModules.nix-homebrew
