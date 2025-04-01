@@ -38,7 +38,7 @@
     architecture = "aarch64-darwin";
     hostname = "Joshs-Mac-mini";
 
-    configuration = import ./darwin.nix {inherit user homeDir inputs hostname architecture;};
+    configuration = import ./darwin.nix { inherit user homeDir inputs hostname architecture; };
   in {
     darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
       system = architecture;

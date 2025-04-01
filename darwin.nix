@@ -3,7 +3,7 @@
   homeDir,
   inputs,
   hostname,
-  architecture,
+  architecture
 }: {pkgs, ...}: {
   # Define home directory.
   users.users.${user}.home = homeDir;
